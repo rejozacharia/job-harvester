@@ -10,6 +10,12 @@ Agentic job discovery and ranking for senior data/analytics roles. Pulls posting
 - CSV exports + optional Telegram notifications.
 - Lightweight FastAPI: `/health`, `/latest`, `/run`.
 
+## How scoring works
+
+- Each harvested posting is represented as a `Job` model containing title, company, source, description, and other metadata. The raw snippet from SerpAPI can optionally be enriched with a full-page scrape when `ENABLE_FOLLOW_LINK=true`.
+- `app/agent.py` contains `LLMScorer`, which calls the configured OpenAI or OpenRouter model to rate strategic fit from 0–100 and generate a short “Why I’m a fit” blurb. The model prompt is tailored for senior data and analytics leadership roles.
+- Assessment-oriented language is detected locally (no LLM call required) and can be used to filter or boost scores via `.env` toggles.
+
 ## Project structure
 
 ```text
@@ -39,6 +45,7 @@ Data produced at runtime is written to `data/` (SQLite database) and `output/` (
 
 1. Copy `.env.example` to `.env` and supply secrets (SerpAPI, OpenAI/OpenRouter, Telegram, etc.).
 2. Adjust search titles, keywords, and locations to match the roles you want to target.
+   - To cover multiple regions, list them in `LOCATIONS` as a comma-separated string (e.g. `Remote,New York, NY, USA,San Francisco, CA, USA,Bengaluru, India,Dubai, UAE`). The runner iterates over every title/location combination.
 3. Toggle optional features such as assessment filtering/boosting and link-following as needed.
 
 ## Local development
@@ -79,6 +86,8 @@ docker run --rm --env-file .env -p 8080:8080 \
   -v $(pwd)/data:/app/data -v $(pwd)/output:/app/output job-harvester:dev
 ```
 
+> **Note:** The Docker build step only needs the source tree and `requirements.txt`. A populated `.env` file is required at runtime (passed via `--env-file` or Compose) but not during `docker build`.
+
 ## Deploy on Unraid (Compose/Stack)
 
 Use the bundled `docker-compose.yml`. Edit `.env` first, then:
@@ -87,8 +96,5 @@ Use the bundled `docker-compose.yml`. Edit `.env` first, then:
 docker compose up -d
 ```
 
-## API
-- `GET /health` → `{ ok: true }`
-- `GET /latest?limit=20` → last N items from SQLite
-- `POST /run` → triggers a manual harvest now
-```
+The compose file also includes [containrrr/watchtower](https://containrrr.dev/watchtower/) to keep
+the container image updated from GHCR.
