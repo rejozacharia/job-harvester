@@ -19,6 +19,16 @@ class Store:
         cur.execute("SELECT 1 FROM jobs WHERE id=?", (job.id,))
         if cur.fetchone():
             return False
+        status = (job.status or "").strip().lower()
+        choices = settings.JOB_STATUS_CHOICES
+        if choices:
+            if status not in choices:
+                status = choices[0]
+        elif not status:
+            status = "harvested"
+        notes = (job.notes or "").strip()
+        job.status = status
+        job.notes = notes
         cur.execute(
             """
             INSERT INTO jobs(id,title,company,location,via,posted_at,url,source,description,salary,
@@ -28,7 +38,7 @@ class Store:
             (
                 job.id, job.title, job.company, job.location, job.via, job.posted_at, job.url, job.source,
                 job.description, job.salary, job.llm_score, job.llm_blurb, job.assessment_flag, job.assessment_terms,
-                job.status, job.notes,
+                status, notes,
                 datetime.utcnow().isoformat(),
             ),
         )
@@ -42,10 +52,13 @@ class Store:
             (limit,),
         )
         rows = cur.fetchall()
+        default_status = None
+        if settings.JOB_STATUS_CHOICES:
+            default_status = settings.JOB_STATUS_CHOICES[0]
         return [Job(
             id=r[0], title=r[1], company=r[2], location=r[3], via=r[4], posted_at=r[5], url=r[6], source=r[7],
             description=r[8], salary=r[9], llm_score=r[10], llm_blurb=r[11], assessment_flag=r[12], assessment_terms=r[13],
-            status=r[14], notes=r[15]
+            status=(r[14] or default_status or "harvested"), notes=(r[15] or "")
         ) for r in rows]
 
     def update_status(self, job_id: str, status: str, notes: str | None = None) -> bool:
