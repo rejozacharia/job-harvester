@@ -1,4 +1,3 @@
-```md
 # Job Harvester
 
 Agentic job discovery and ranking for senior data/analytics roles. Pulls postings via SerpAPI (Google Jobs + optional LinkedIn Jobs), optionally enriches from company pages, flags assessment-oriented roles, scores fit with an LLM, exports CSV, and exposes a tiny API.
@@ -6,7 +5,7 @@ Agentic job discovery and ranking for senior data/analytics roles. Pulls posting
 ## Features
 - Assessment-aware detection with on/off toggles and score boost.
 - Optional full-page scrape to enrich descriptions before detection.
-- LLM scoring + 1‑line “Why I’m a fit” blurb (OpenAI/OpenRouter).
+- LLM scoring + 1-line “Why I’m a fit” blurb (OpenAI/OpenRouter).
 - Daily scheduled runs via APScheduler (in-container; no host cron).
 - CSV exports + optional Telegram notifications.
 - Lightweight FastAPI: `/health`, `/latest`, `/run`.
@@ -42,6 +41,3 @@ docker compose up -d
 - `GET /latest?limit=20` → last N items from SQLite
 - `POST /run` → triggers a manual harvest now
 ```
-```
-
----

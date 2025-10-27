@@ -1,0 +1,19 @@
+services:
+  job-harvester:
+    image: ghcr.io/<your-username>/job-harvester:main
+    container_name: job-harvester
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8080:8080"
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ./data:/app/data
+      - ./output:/app/output
+  watchtower:
+    image: containrrr/watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --cleanup --interval 600 job-harvester
