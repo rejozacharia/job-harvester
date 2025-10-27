@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+apScheduler
+pydantic>=2
+pydantic-settings
+python-dotenv
+requests
+beautifulsoup4
+lxml
+python-dateutil
+rich
+openai>=1.0.0
+jinja2
