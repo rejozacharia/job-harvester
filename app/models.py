@@ -16,5 +16,8 @@ class Job(BaseModel):
     llm_blurb: Optional[str] = None
     assessment_flag: int = 0
     assessment_terms: str = ""
+<<<<<<< HEAD
     status: str = "harvested"
     notes: str = ""
+=======
+>>>>>>> main

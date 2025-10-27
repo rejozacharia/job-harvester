@@ -22,13 +22,21 @@ class Store:
         cur.execute(
             """
             INSERT INTO jobs(id,title,company,location,via,posted_at,url,source,description,salary,
+<<<<<<< HEAD
                              llm_score,llm_blurb,assessment_flag,assessment_terms,status,notes,created_at)
             VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+=======
+                             llm_score,llm_blurb,assessment_flag,assessment_terms,created_at)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+>>>>>>> main
             """,
             (
                 job.id, job.title, job.company, job.location, job.via, job.posted_at, job.url, job.source,
                 job.description, job.salary, job.llm_score, job.llm_blurb, job.assessment_flag, job.assessment_terms,
+<<<<<<< HEAD
                 job.status, job.notes,
+=======
+>>>>>>> main
                 datetime.utcnow().isoformat(),
             ),
         )
@@ -38,12 +46,17 @@ class Store:
     def latest(self, limit: int = 20) -> List[Job]:
         cur = self.conn.cursor()
         cur.execute(
+<<<<<<< HEAD
             "SELECT id,title,company,location,via,posted_at,url,source,description,salary,llm_score,llm_blurb,assessment_flag,assessment_terms,status,notes FROM jobs ORDER BY created_at DESC LIMIT ?",
+=======
+            "SELECT id,title,company,location,via,posted_at,url,source,description,salary,llm_score,llm_blurb,assessment_flag,assessment_terms FROM jobs ORDER BY created_at DESC LIMIT ?",
+>>>>>>> main
             (limit,),
         )
         rows = cur.fetchall()
         return [Job(
             id=r[0], title=r[1], company=r[2], location=r[3], via=r[4], posted_at=r[5], url=r[6], source=r[7],
+<<<<<<< HEAD
             description=r[8], salary=r[9], llm_score=r[10], llm_blurb=r[11], assessment_flag=r[12], assessment_terms=r[13],
             status=r[14], notes=r[15]
         ) for r in rows]
@@ -62,6 +75,11 @@ class Store:
         self.conn.commit()
         return True
 
+=======
+            description=r[8], salary=r[9], llm_score=r[10], llm_blurb=r[11], assessment_flag=r[12], assessment_terms=r[13]
+        ) for r in rows]
+
+>>>>>>> main
 class Exporter:
     @staticmethod
     def export_csv(jobs: List[Job], outdir: str) -> str | None:
@@ -74,12 +92,20 @@ class Exporter:
             w = csv.writer(f)
             w.writerow([
                 "title","company","location","url","source","via","posted_at","salary",
+<<<<<<< HEAD
                 "llm_score","llm_blurb","assessment_flag","assessment_terms","status","notes","description"
+=======
+                "llm_score","llm_blurb","assessment_flag","assessment_terms","description"
+>>>>>>> main
             ])
             for j in jobs:
                 w.writerow([
                     j.title, j.company, j.location, j.url, j.source, j.via, j.posted_at, j.salary,
+<<<<<<< HEAD
                     j.llm_score or "", j.llm_blurb or "", j.assessment_flag, j.assessment_terms, j.status, j.notes, j.description
+=======
+                    j.llm_score or "", j.llm_blurb or "", j.assessment_flag, j.assessment_terms, j.description
+>>>>>>> main
                 ])
         return fname
 

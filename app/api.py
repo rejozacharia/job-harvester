@@ -1,15 +1,22 @@
+<<<<<<< HEAD
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+=======
+from fastapi import FastAPI
+>>>>>>> main
 from .harvest import Runner
 from .settings import settings
 
 app = FastAPI()
 _runner = Runner()
 
+<<<<<<< HEAD
 class StatusUpdate(BaseModel):
     status: str
     notes: str | None = None
 
+=======
+>>>>>>> main
 @app.get("/health")
 def health():
     return {"ok": True}
@@ -21,6 +28,7 @@ def run_now():
 @app.get("/latest")
 def latest(limit: int = 20):
     return [j.model_dump() for j in _runner.store.latest(limit)]
+<<<<<<< HEAD
 
 @app.post("/jobs/{job_id}/status")
 def update_status(job_id: str, payload: StatusUpdate):
@@ -34,3 +42,5 @@ def update_status(job_id: str, payload: StatusUpdate):
     if not updated:
         raise HTTPException(status_code=404, detail={"error": "job_not_found"})
     return {"ok": True, "id": job_id, "status": status, "notes": (payload.notes or "")}
+=======
+>>>>>>> main

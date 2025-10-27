@@ -6,7 +6,11 @@ Agentic job discovery and ranking for senior data/analytics roles. Pulls posting
 - Assessment-aware detection with on/off toggles and score boost.
 - Optional full-page scrape to enrich descriptions before detection.
 - LLM scoring + 1-line “Why I’m a fit” blurb (OpenAI/OpenRouter).
+<<<<<<< HEAD
 - Scheduled runs via APScheduler with configurable cron expressions (in-container; no host cron).
+=======
+- Daily scheduled runs via APScheduler (in-container; no host cron).
+>>>>>>> main
 - CSV exports + optional Telegram notifications.
 - Lightweight FastAPI: `/health`, `/latest`, `/run`.
 
@@ -28,7 +32,11 @@ Agentic job discovery and ranking for senior data/analytics roles. Pulls posting
 │   ├── harvest.py        # Core Runner pipeline, CSV exporter, and storage wrapper
 │   ├── models.py         # Pydantic Job schema shared by the app
 │   ├── scrape.py         # Optional full-page scraping of job postings
+<<<<<<< HEAD
 │   ├── scheduler.py      # APScheduler setup for cron-based runs inside the container
+=======
+│   ├── scheduler.py      # APScheduler setup for daily runs inside the container
+>>>>>>> main
 │   ├── settings.py       # Pydantic-settings backed configuration (reads `.env`)
 │   └── sources.py        # SerpAPI-powered Google Jobs & LinkedIn Jobs loaders
 ├── main.py               # ASGI application that mounts the API and starts the scheduler
@@ -47,8 +55,11 @@ Data produced at runtime is written to `data/` (SQLite database) and `output/` (
 2. Adjust search titles, keywords, and locations to match the roles you want to target.
    - To cover multiple regions, list them in `LOCATIONS` as a comma-separated string (e.g. `Remote,New York, NY, USA,San Francisco, CA, USA,Bengaluru, India,Dubai, UAE`). The runner iterates over every title/location combination.
 3. Toggle optional features such as assessment filtering/boosting and link-following as needed.
+<<<<<<< HEAD
 4. Adjust `SCHEDULE_CRONS` (comma/semicolon/newline separated) to control how often the harvester runs. Example: `SCHEDULE_CRONS=0 */4 * * *` runs every 4 hours; multiple expressions are supported for precise timing.
 5. Customize `JOB_STATUS_CHOICES` if you want different lifecycle buckets for tracking applications.
+=======
+>>>>>>> main
 
 ## Local development
 
@@ -71,6 +82,7 @@ The API will be available at `http://localhost:8080`.  Useful endpoints include:
 - `GET /health` – liveness probe for Docker and health checks
 - `GET /latest?limit=20` – newest records from SQLite as JSON
 - `POST /run` – trigger a harvest immediately
+<<<<<<< HEAD
 - `POST /jobs/{job_id}/status` – update the lifecycle status/notes for a stored job (e.g. applied, rejected)
 
 ### Job lifecycle & deduplication
@@ -84,6 +96,14 @@ The API will be available at `http://localhost:8080`.  Useful endpoints include:
 `main.py` starts the FastAPI app and launches the background scheduler. Cron expressions come from the `SCHEDULE_CRONS`
 setting (defaults to `40 7 * * *` for 07:40 America/Chicago). Provide multiple expressions to run several times per day;
 invalid expressions are ignored and the default is used as a fallback.
+=======
+
+## Scheduler behaviour
+
+`main.py` starts the FastAPI app and launches the background scheduler. By default, the
+APScheduler job executes daily at 07:40 America/Chicago. Modify `app/scheduler.py`
+if you need different timing.
+>>>>>>> main
 
 ## Docker usage
 

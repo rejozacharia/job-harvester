@@ -1,5 +1,9 @@
 from pydantic_settings import BaseSettings
+<<<<<<< HEAD
 from pydantic import Field, field_validator
+=======
+from pydantic import Field
+>>>>>>> main
 from typing import List
 
 class Settings(BaseSettings):
@@ -36,14 +40,18 @@ class Settings(BaseSettings):
     DB_PATH: str = "/app/data/jobs.db"
 
     TZ: str = "America/Chicago"
+<<<<<<< HEAD
     SCHEDULE_CRONS: List[str] = Field(default_factory=lambda: ["40 7 * * *"])
     JOB_STATUS_CHOICES: List[str] = Field(default_factory=lambda: [
         "harvested","researching","applied","interviewing","offer","rejected","archived"
     ])
+=======
+>>>>>>> main
 
     class Config:
         env_file = ".env"
 
+<<<<<<< HEAD
     @staticmethod
     def _split_env_list(value: str) -> List[str]:
         import re
@@ -67,4 +75,6 @@ class Settings(BaseSettings):
     def _normalize_statuses(cls, value: List[str]) -> List[str]:
         return [item.lower() for item in value]
 
+=======
+>>>>>>> main
 settings = Settings()

@@ -18,8 +18,11 @@ CREATE TABLE IF NOT EXISTS jobs (
   llm_blurb TEXT,
   assessment_flag INTEGER DEFAULT 0,
   assessment_terms TEXT DEFAULT '',
+<<<<<<< HEAD
   status TEXT DEFAULT 'harvested',
   notes TEXT DEFAULT '',
+=======
+>>>>>>> main
   created_at TEXT
 );
 """
@@ -27,8 +30,11 @@ CREATE TABLE IF NOT EXISTS jobs (
 MIGRATIONS = [
     ("assessment_flag", "ALTER TABLE jobs ADD COLUMN assessment_flag INTEGER DEFAULT 0"),
     ("assessment_terms", "ALTER TABLE jobs ADD COLUMN assessment_terms TEXT DEFAULT ''"),
+<<<<<<< HEAD
     ("status", "ALTER TABLE jobs ADD COLUMN status TEXT DEFAULT 'harvested'"),
     ("notes", "ALTER TABLE jobs ADD COLUMN notes TEXT DEFAULT ''"),
+=======
+>>>>>>> main
 ]
 
 def connect():
