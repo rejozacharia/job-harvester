@@ -87,5 +87,8 @@ Use the bundled `docker-compose.yml`. Edit `.env` first, then:
 docker compose up -d
 ```
 
-The compose file also includes [containrrr/watchtower](https://containrrr.dev/watchtower/) to keep
-the container image updated from GHCR.
+## API
+- `GET /health` → `{ ok: true }`
+- `GET /latest?limit=20` → last N items from SQLite
+- `POST /run` → triggers a manual harvest now
+```
