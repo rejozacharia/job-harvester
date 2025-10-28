@@ -14,10 +14,20 @@ class LLMScorer:
         self.enabled = False
         self.client = None
         self.model = settings.LLM_MODEL
-        if settings.OPENAI_API_KEY and OpenAI:
+        if not OpenAI:
+            return
+
+        if settings.LLM_API_BASE:
+            api_key = settings.LLM_API_KEY or "not-needed"
+            self.client = OpenAI(api_key=api_key, base_url=settings.LLM_API_BASE)
+            self.enabled = True
+        elif settings.LLM_API_KEY:
+            self.client = OpenAI(api_key=settings.LLM_API_KEY)
+            self.enabled = True
+        elif settings.OPENAI_API_KEY:
             self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
             self.enabled = True
-        elif settings.OPENROUTER_API_KEY and OpenAI:
+        elif settings.OPENROUTER_API_KEY:
             self.client = OpenAI(api_key=settings.OPENROUTER_API_KEY, base_url="https://openrouter.ai/api/v1")
             self.enabled = True
 

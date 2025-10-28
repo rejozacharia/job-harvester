@@ -27,6 +27,8 @@ class Settings(BaseSettings):
 
     OPENAI_API_KEY: str = ""
     OPENROUTER_API_KEY: str = ""
+    LLM_API_BASE: str = ""
+    LLM_API_KEY: str = ""
     LLM_MODEL: str = "gpt-4o-mini"
 
     TELEGRAM_BOT_TOKEN: str = ""
