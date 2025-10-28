@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Job Harvester Dashboard</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 0 1rem 2rem;
+            background: var(--bg, #f7f7f8);
+            color: inherit;
+        }
+        header {
+            padding: 1.5rem 0 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 1rem;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 1.75rem;
+        }
+        header .meta {
+            font-size: 0.9rem;
+            opacity: 0.75;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        thead {
+            background: rgba(15, 23, 42, 0.05);
+        }
+        th, td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+            vertical-align: top;
+        }
+        th {
+            text-align: left;
+            font-size: 0.85rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+        a {
+            color: #2563eb;
+        }
+        .job-meta {
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+            color: rgba(71, 85, 105, 0.9);
+        }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 999px;
+            background: rgba(34, 197, 94, 0.2);
+            color: #166534;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .status-cell {
+            display: grid;
+            gap: 0.5rem;
+        }
+        .status-cell select,
+        .status-cell textarea,
+        .status-cell button {
+            font: inherit;
+        }
+        .status-cell select {
+            padding: 0.4rem 0.5rem;
+        }
+        .status-cell textarea {
+            min-height: 3rem;
+            resize: vertical;
+            padding: 0.5rem;
+        }
+        .status-cell button {
+            justify-self: start;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid rgba(59, 130, 246, 0.6);
+            background: rgba(59, 130, 246, 0.15);
+            color: #1d4ed8;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .status-cell button:hover {
+            background: rgba(59, 130, 246, 0.25);
+        }
+        .feedback {
+            font-size: 0.8rem;
+            min-height: 1.2rem;
+        }
+        .feedback.ok {
+            color: #15803d;
+        }
+        .feedback.err {
+            color: #b91c1c;
+        }
+        @media (max-width: 900px) {
+            table {
+                font-size: 0.9rem;
+            }
+            th:nth-child(3), td:nth-child(3) {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Job Harvester</h1>
+    <div class="meta">Live dashboard · Refreshes automatically every 30 seconds · Showing up to {{ limit }} newest jobs</div>
+    <div class="meta" id="last-refresh"></div>
+</header>
+<section>
+    <table aria-label="Harvested jobs">
+        <thead>
+            <tr>
+                <th>Role &amp; Company</th>
+                <th>Score</th>
+                <th>Assessment</th>
+                <th>Status &amp; Notes</th>
+            </tr>
+        </thead>
+        <tbody id="jobs-body"></tbody>
+    </table>
+</section>
+<script>
+    const STATUS_CHOICES = {{ status_choices | tojson }};
+    const INITIAL_JOBS = {{ jobs | tojson }};
+    const LIMIT = {{ limit }};
+    const jobsBody = document.getElementById('jobs-body');
+    const lastRefresh = document.getElementById('last-refresh');
+
+    function formatStatusLabel(value) {
+        if (!value) return '—';
+        return value.charAt(0).toUpperCase() + value.slice(1);
+    }
+
+    function renderRows(jobs) {
+        jobsBody.innerHTML = '';
+        for (const job of jobs) {
+            const row = document.createElement('tr');
+            row.dataset.jobId = job.id;
+
+            const titleCell = document.createElement('td');
+            const titleLink = document.createElement('a');
+            titleLink.href = job.url || '#';
+            titleLink.target = '_blank';
+            titleLink.rel = 'noopener';
+            titleLink.textContent = job.title || 'Untitled role';
+            titleCell.appendChild(titleLink);
+
+            const meta = document.createElement('div');
+            meta.className = 'job-meta';
+            const company = job.company || 'Unknown company';
+            const location = job.location || 'Location N/A';
+            const posted = job.posted_at ? new Date(job.posted_at).toLocaleDateString() : 'Posted date N/A';
+            meta.textContent = `${company} · ${location} · ${posted}`;
+            titleCell.appendChild(meta);
+
+            const via = document.createElement('div');
+            via.className = 'job-meta';
+            via.textContent = `${job.source || 'source N/A'} ${job.via ? '· via ' + job.via : ''}`;
+            titleCell.appendChild(via);
+
+            if (job.llm_blurb) {
+                const blurb = document.createElement('div');
+                blurb.className = 'job-meta';
+                blurb.textContent = `Fit note: ${job.llm_blurb}`;
+                titleCell.appendChild(blurb);
+            }
+
+            const scoreCell = document.createElement('td');
+            scoreCell.textContent = job.llm_score != null ? Math.round(job.llm_score) : '';
+            scoreCell.style.fontWeight = '600';
+
+            const assessmentCell = document.createElement('td');
+            if (job.assessment_flag) {
+                const pill = document.createElement('span');
+                pill.className = 'pill';
+                pill.textContent = 'Assessment';
+                if (job.assessment_terms) {
+                    pill.title = job.assessment_terms;
+                }
+                assessmentCell.appendChild(pill);
+            }
+
+            const statusCell = document.createElement('td');
+            statusCell.className = 'status-cell';
+
+            const select = document.createElement('select');
+            select.className = 'status';
+            for (const optionValue of STATUS_CHOICES) {
+                const opt = document.createElement('option');
+                opt.value = optionValue;
+                opt.textContent = formatStatusLabel(optionValue);
+                if ((job.status || 'harvested') === optionValue) {
+                    opt.selected = true;
+                }
+                select.appendChild(opt);
+            }
+            statusCell.appendChild(select);
+
+            const notes = document.createElement('textarea');
+            notes.className = 'notes';
+            notes.placeholder = 'Notes, reminders, next steps…';
+            notes.value = job.notes || '';
+            statusCell.appendChild(notes);
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.dataset.action = 'save';
+            button.textContent = 'Save';
+            statusCell.appendChild(button);
+
+            const feedback = document.createElement('div');
+            feedback.className = 'feedback';
+            statusCell.appendChild(feedback);
+
+            row.appendChild(titleCell);
+            row.appendChild(scoreCell);
+            row.appendChild(assessmentCell);
+            row.appendChild(statusCell);
+            jobsBody.appendChild(row);
+        }
+    }
+
+    async function updateStatus(row, status, notes) {
+        const jobId = row.dataset.jobId;
+        const feedback = row.querySelector('.feedback');
+        feedback.textContent = 'Saving…';
+        feedback.className = 'feedback';
+        try {
+            const resp = await fetch(`/jobs/${jobId}/status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status, notes }),
+            });
+            if (!resp.ok) {
+                const payload = await resp.json().catch(() => ({ error: 'unknown' }));
+                throw new Error(payload.detail ? JSON.stringify(payload.detail) : resp.statusText);
+            }
+            feedback.textContent = 'Saved';
+            feedback.classList.add('ok');
+            setTimeout(() => {
+                feedback.textContent = '';
+                feedback.className = 'feedback';
+            }, 2500);
+        } catch (err) {
+            feedback.textContent = 'Failed to save';
+            feedback.classList.add('err');
+            console.error(err);
+        }
+    }
+
+    jobsBody.addEventListener('click', async (event) => {
+        if (event.target.matches('button[data-action="save"]')) {
+            const row = event.target.closest('tr');
+            if (!row) return;
+            const status = row.querySelector('select.status').value;
+            const notes = row.querySelector('textarea.notes').value;
+            await updateStatus(row, status, notes);
+        }
+    });
+
+    function setLastRefresh(timestamp = Date.now()) {
+        const date = new Date(timestamp);
+        lastRefresh.textContent = `Last updated ${date.toLocaleTimeString()}`;
+    }
+
+    async function refreshJobs() {
+        try {
+            const resp = await fetch(`/latest?limit=${LIMIT}`);
+            if (!resp.ok) {
+                throw new Error('Failed to fetch jobs');
+            }
+            const jobs = await resp.json();
+            renderRows(jobs);
+            setLastRefresh();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    renderRows(INITIAL_JOBS);
+    setLastRefresh();
+    setInterval(() => {
+        if (document.visibilityState === 'visible') {
+            refreshJobs();
+        }
+    }, 30000);
+</script>
+</body>
+</html>
