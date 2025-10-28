@@ -1,0 +1,11 @@
+# Prevent local development artifacts and secrets from entering Docker build context
+.env
+.env.*
+*.pyc
+__pycache__/
+.venv/
+output/
+data/
+.run/
+.git
+.gitignore
