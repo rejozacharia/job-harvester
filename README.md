@@ -5,7 +5,7 @@ Agentic job discovery and ranking for senior data/analytics roles. Pulls posting
 ## Features
 - Assessment-aware detection with on/off toggles and score boost.
 - Optional full-page scrape to enrich descriptions before detection.
-- LLM scoring + 1-line “Why I’m a fit” blurb (OpenAI/OpenRouter).
+- LLM scoring + 1-line “Why I’m a fit” blurb (OpenAI/OpenRouter or any OpenAI-compatible endpoint).
 - Scheduled runs via APScheduler with configurable cron expressions (in-container; no host cron).
 - CSV exports + optional Telegram notifications.
 - Lightweight FastAPI: `/health`, `/latest`, `/run`, `/dashboard` (live status UI).
@@ -13,7 +13,7 @@ Agentic job discovery and ranking for senior data/analytics roles. Pulls posting
 ## How scoring works
 
 - Each harvested posting is represented as a `Job` model containing title, company, source, description, and other metadata. The raw snippet from SerpAPI can optionally be enriched with a full-page scrape when `ENABLE_FOLLOW_LINK=true`.
-- `app/agent.py` contains `LLMScorer`, which calls the configured OpenAI or OpenRouter model to rate strategic fit from 0–100 and generate a short “Why I’m a fit” blurb. The model prompt is tailored for senior data and analytics leadership roles.
+- `app/agent.py` contains `LLMScorer`, which calls the configured OpenAI/OpenRouter model or any OpenAI-compatible endpoint to rate strategic fit from 0–100 and generate a short “Why I’m a fit” blurb. The model prompt is tailored for senior data and analytics leadership roles.
 - Assessment-oriented language is detected locally (no LLM call required) and can be used to filter or boost scores via `.env` toggles.
 
 ## Project structure
@@ -43,12 +43,19 @@ Data produced at runtime is written to `data/` (SQLite database) and `output/` (
 
 ## Configuration
 
-1. Copy `.env.example` to `.env` and supply secrets (SerpAPI, OpenAI/OpenRouter, Telegram, etc.).
+1. Copy `.env.example` to `.env` and supply secrets (SerpAPI, OpenAI/OpenRouter, custom LLM endpoint, Telegram, etc.).
 2. Adjust search titles, keywords, and locations to match the roles you want to target.
    - To cover multiple regions, list them in `LOCATIONS` as a comma-separated string (e.g. `Remote,New York, NY, USA,San Francisco, CA, USA,Bengaluru, India,Dubai, UAE`). The runner iterates over every title/location combination.
 3. Toggle optional features such as assessment filtering/boosting and link-following as needed.
 4. Adjust `SCHEDULE_CRONS` (comma/semicolon/newline separated) to control how often the harvester runs. Example: `SCHEDULE_CRONS=0 */4 * * *` runs every 4 hours; multiple expressions are supported for precise timing.
 5. Customize `JOB_STATUS_CHOICES` if you want different lifecycle buckets for tracking applications.
+
+### Configuring LLM connectivity
+
+- Set `LLM_MODEL` to any model identifier supported by your provider (defaults to `gpt-4o-mini`).
+- To target a self-hosted or proxy endpoint (Ollama, LM Studio, etc.), set `LLM_API_BASE` to its OpenAI-compatible base URL (for example `http://localhost:11434/v1`).
+- Provide `LLM_API_KEY` if the endpoint expects a bearer token. When omitted, the client supplies a placeholder token so most local gateways accept the request without extra setup.
+- If no custom base URL is supplied, the harvester falls back to `OPENAI_API_KEY` and `OPENROUTER_API_KEY` in that order.
 
 ## Local development
 
